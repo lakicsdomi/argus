@@ -1,4 +1,4 @@
-package argus
+package logger
 
 import (
 	"fmt"
@@ -8,13 +8,13 @@ import (
 	"time"
 )
 
-// FileLogger implements the Logger interface and writes to a specific file
+// Implements the Logger interface and writes to a specific file
 type FileLogger struct {
 	levelName string
 	file      *os.File
 }
 
-// NewFileLogger creates a new FileLogger instance for a specific severity level
+// Creates a new FileLogger instance for a specific severity level
 func NewFileLogger(directory, levelName string) (*FileLogger, error) {
 	if err := os.MkdirAll(directory, 0755); err != nil {
 		return nil, fmt.Errorf("failed to create log directory: %w", err)
@@ -35,12 +35,12 @@ func NewFileLogger(directory, levelName string) (*FileLogger, error) {
 	}, nil
 }
 
-// Log writes a standard message to both the console and the specific log file
+// Writes a standard message to both the console and the specific log file
 func (l *FileLogger) Log(message string) {
 	l.write(fmt.Sprintf("%s", message))
 }
 
-// LogErr writes an error message to both the console and the specific log file
+// Writes an error message to both the console and the specific log file
 func (l *FileLogger) LogErr(message string, err error) {
 	if err == nil {
 		return
@@ -48,15 +48,17 @@ func (l *FileLogger) LogErr(message string, err error) {
 	l.write(fmt.Sprintf("%s - Error details: %v", message, err))
 }
 
-// write handles the actual formatting and I/O operations
+// Handles the actual formatting and I/O operations
 func (l *FileLogger) write(content string) {
 	timestamp := time.Now().Format("2006-01-02 15:04:05")
 	logMessage := fmt.Sprintf("[%s] %s: %s\n", timestamp, l.levelName, content)
 
-	// Print to standard output (console)
-	log.Print(logMessage)
+	// Only output to the console if the level is CRITICAL or ERROR
+	if l.levelName == "CRITICAL" || l.levelName == "ERROR" {
+		log.Print(logMessage)
+	}
 
-	// Write the message to the file
+	// Always write the message to the log file
 	if l.file != nil {
 		if _, writeErr := l.file.WriteString(logMessage); writeErr != nil {
 			log.Printf("Failed to write to %s log file: %v\n", l.levelName, writeErr)
@@ -64,7 +66,7 @@ func (l *FileLogger) write(content string) {
 	}
 }
 
-// Close safely closes the underlying log file
+// Safely closes the underlying log file
 func (l *FileLogger) Close() error {
 	if l.file != nil {
 		return l.file.Close()
