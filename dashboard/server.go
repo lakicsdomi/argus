@@ -42,7 +42,7 @@ func Serve(logDirectory string, port string) {
 	}
 }
 
-// readLogs scans the directory and parses the log files into structured data
+// Scans the directory and parses the log files into structured data
 func readLogs(directory string) []LogEntry {
 	var entries []LogEntry
 
