@@ -17,7 +17,7 @@ type FileLogger struct {
 // Creates a new FileLogger instance for a specific severity level
 func NewFileLogger(directory, levelName string) (*FileLogger, error) {
 	if err := os.MkdirAll(directory, 0755); err != nil {
-		return nil, fmt.Errorf("failed to create log directory: %w", err)
+		return nil, fmt.Errorf("Failed to create log directory: %w", err)
 	}
 
 	// Generate the file name based on the level and current date
@@ -26,7 +26,7 @@ func NewFileLogger(directory, levelName string) (*FileLogger, error) {
 
 	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open %s log file: %w", levelName, err)
+		return nil, fmt.Errorf("Failed to open %s log file: %w", levelName, err)
 	}
 
 	return &FileLogger{
@@ -36,29 +36,29 @@ func NewFileLogger(directory, levelName string) (*FileLogger, error) {
 }
 
 // Writes a standard message to both the console and the specific log file
-func (l *FileLogger) Log(message string) {
-	l.write(fmt.Sprintf("%s", message))
+func (l *FileLogger) Log(component string, message string) {
+	l.write(component, message)
 }
 
 // Writes an error message to both the console and the specific log file
-func (l *FileLogger) LogErr(message string, err error) {
+func (l *FileLogger) LogErr(component string, message string, err error) {
 	if err == nil {
 		return
 	}
-	l.write(fmt.Sprintf("%s - Error details: %v", message, err))
+	l.write(component, fmt.Sprintf("%s - Error details: %v", message, err))
 }
 
 // Handles the actual formatting and I/O operations
-func (l *FileLogger) write(content string) {
+func (l *FileLogger) write(component string, content string) {
 	timestamp := time.Now().Format("2006-01-02 15:04:05")
-	logMessage := fmt.Sprintf("[%s] %s: %s\n", timestamp, l.levelName, content)
+	// [TIMESTAMP] LEVEL: COMPONENT: MESSAGE
+	logMessage := fmt.Sprintf("[%s] %s: %s: %s\n", timestamp, l.levelName, component, content)
 
 	// Only output to the console if the level is CRITICAL or ERROR
 	if l.levelName == "CRITICAL" || l.levelName == "ERROR" {
 		log.Print(logMessage)
 	}
 
-	// Always write the message to the log file
 	if l.file != nil {
 		if _, writeErr := l.file.WriteString(logMessage); writeErr != nil {
 			log.Printf("Failed to write to %s log file: %v\n", l.levelName, writeErr)
