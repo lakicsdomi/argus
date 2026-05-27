@@ -1,6 +1,3 @@
-### 2. Az `argus` README.md frissítve:
-
-```markdown
 # Argus Logger
 
 Argus is a lightweight, multi-leveled logging library for Go. Named after the all-seeing giant from Greek mythology, it provides clear, segregated logging into specific files based on verbosity levels and application components.
