@@ -1,28 +1,35 @@
 # 👁️ Argus Logger
 
-![Coverage](https://img.shields.io/badge/Coverage-95.2%25-brightgreen)
-![Go Version](https://img.shields.io/badge/Go-1.26-blue)
-![Architecture](https://img.shields.io/badge/Architecture-SOLID-orange)
-![CI/CD](https://img.shields.io/badge/CI%2FCD-Resilient-2496ED)
 
-A robust, interface-driven telemetry and logging library for Go. Named after the all-seeing giant from Greek mythology, Argus provides thread-safe, component-segregated file logging alongside a concurrent, real-time HTTP telemetry dashboard.
+Argus is a telemetry and logging library for Go with structured file logging and a built-in real-time dashboard.
 
-Engineered with **Clean Architecture** and **DevOps best practices** in mind, Argus is designed to be easily mockable, highly observable, and CI/CD-ready.
+The project is interface-driven, thread-safe, and designed for applications where logging and observability should stay simple and predictable.
 
 ---
 
-## ✨ Key Features
+## ✨ Features
 
-### 🏗 Software Architecture
-- **Interface-Driven (SOLID)**: Core logging mechanisms are abstracted behind interfaces, eliminating global state and allowing for seamless dependency injection and mocking in your applications.
-- **Concurrent Telemetry**: Features an out-of-the-box, standalone HTTP dashboard running in a dedicated `goroutine` to view, filter, and sort logs chronologically without blocking the main application thread.
-- **Component Segregation**: Enforces a mandatory `COMPONENT` identifier (e.g., `DATABASE`, `ROUTER`) to ensure highly organized, traceable, and grep-friendly structured logs.
-- **Multi-Level Verbosity**: Native support for `VERBOSE`, `WARNING`, `ERROR`, and `CRITICAL` levels, automatically rolling into separate daily log files.
+### 📝 Logging
 
-### 🚀 DevOps & Infrastructure
-- **Deterministic CI Environments**: Incorporates Docker-isolated static analysis (`golangci-lint`) and testing targets to eliminate "Works on my machine" anomalies.
-- **Self-Healing CI Pipeline**: GitHub Actions workflow features a fallback mechanism—if the native Action linter fails due to environment mismatch, it automatically falls back to a containerized Linter.
-- **Automated Coverage Badges**: Zero reliance on third-party opaque badge generators. Coverage is dynamically extracted via native Go tools and updated via `sed` scripting in the `Makefile`.
+* Thread-safe structured logging
+* Log levels: `VERBOSE`, `WARNING`, `ERROR`, `CRITICAL`
+* Daily log file rotation
+* Component-based logging (`DATABASE`, `API`, `ROUTER`, etc.)
+* Interface-based design for easier testing and mocking
+
+### 📊 Telemetry Dashboard
+
+* Built-in HTTP dashboard
+* Runs in a separate goroutine
+* Real-time log viewing
+* Filtering and chronological sorting
+
+### 🚀 Development & CI
+
+* Docker-based test and lint commands
+* GitHub Actions workflow support
+* Coverage badge updates using native Go tooling
+* Consistent local and CI environments
 
 ---
 
@@ -30,14 +37,11 @@ Engineered with **Clean Architecture** and **DevOps best practices** in mind, Ar
 
 ```bash
 go get github.com/lakicsdomi/argus@v1.3.0
-
 ```
 
 ---
 
-## 💻 Usage Example
-
-Integrating Argus into your application is straightforward and enforces clean boundaries:
+## 💻 Example
 
 ```go
 package main
@@ -51,45 +55,46 @@ import (
 )
 
 func main() {
-	// Initialize the Argus logging manager
 	logger, err := argus.Init("logs")
 	if err != nil {
-		log.Fatalf("Failed to initialize logger: %v", err)
+		log.Fatalf("failed to initialize logger: %v", err)
 	}
-	// Ensure file descriptors are gracefully closed on shutdown
 	defer logger.CloseAll()
 
-	// Spin up the real-time telemetry dashboard in a non-blocking goroutine
+	// Start dashboard
 	go dashboard.Serve(logger.Directory, ":9090")
 
-	// Standard structured logging
-	logger.Verbose.Log("MAIN", "Application initialized successfully.")
+	logger.Verbose.Log("MAIN", "Application started")
 
-	// Error logging with context
 	err = fmt.Errorf("connection timeout")
 	if err != nil {
-		logger.Error.LogErr("DATABASE", "An operation failed", err)
+		logger.Error.LogErr("DATABASE", "operation failed", err)
 	}
 }
-
 ```
 
 ---
 
-## 🧪 Development & CI/CD
+## 🧪 Development
 
-Argus relies on a robust `Makefile` as the single source of truth for both local development and CI/CD pipelines.
+The project uses a `Makefile` for local development and CI tasks.
 
-### Makefile Commands
+| Command             | Description                                 |
+| ------------------- | ------------------------------------------- |
+| `make test`         | Run unit tests and generate coverage output |
+| `make docker-test`  | Run tests inside Docker                     |
+| `make lint`         | Format and lint locally                     |
+| `make docker-lint`  | Run `golangci-lint` in Docker               |
+| `make update-badge` | Update coverage badge automatically         |
 
-| Command | Description |
-| --- | --- |
-| `make test` | Runs local unit tests and generates a `coverage.out` profile. |
-| `make docker-test` | **[CI Standard]** Runs tests inside an isolated Docker container ensuring 100% environmental parity, extracting coverage dynamically. |
-| `make lint` | Formats and lints the codebase locally. |
-| `make docker-lint` | Runs strict static analysis (`golangci-lint`) inside a multi-stage Docker container. |
-| `make update-badge` | Parses the coverage profile and updates this README's badge automatically. |
+---
 
-### CI/CD Simulation
+## 🔧 Local CI Testing
 
-To validate the `.github/workflows/ci.yml` pipeline locally without pushing to GitHub, this repository supports [act](https://github.com/nektos/act). Run `act` in the root directory to simulate the exact GitHub Actions runner environment safely on your machine.
+You can test the GitHub Actions workflow locally with:
+
+```bash
+act
+```
+
+This simulates the GitHub Actions environment without pushing changes to GitHub.
