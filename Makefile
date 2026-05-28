@@ -1,4 +1,4 @@
-.PHONY: deps lint-simple test test-no-coverage lint clean docker-test docker-down coverage-summary docker-lint
+.PHONY: deps lint-simple test test-no-coverage lint clean docker-test docker-down coverage-summary update-badge docker-lint 
 
 # Makefile for Argus
 # Provides commands for dependency management, testing, linting,
@@ -23,6 +23,12 @@ test:
 coverage-summary:
 	@echo "Extracting total coverage..."
 	@go tool cover -func=coverage.out | grep total | awk '{print $$3}'
+
+# Dynamically updates the coverage badge in README.md without relying on 3rd party actions
+update-badge:
+	@echo "Updating coverage badge in README.md..."
+	@COVERAGE=$$(go tool cover -func=coverage.out | grep total | awk '{print $$3}' | tr -d '%'); \
+	sed -i -e "s/Coverage-[0-9.]*%25/Coverage-$${COVERAGE}%25/g" README.md
 
 test-no-coverage:
 	@echo "Running tests without coverage for faster execution..."
