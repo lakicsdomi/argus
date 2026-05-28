@@ -8,6 +8,8 @@ on:
 
 jobs:
   validate:
+    permissions:
+      contents: write # Needed for coverage badge updates
     name: Validation Pipeline
     runs-on: ubuntu-latest
 
@@ -23,10 +25,13 @@ jobs:
     - name: Download dependencies
       run: make deps
 
-    # By using a Dockerized linter, we ensure a deterministic environment
-    # avoiding Go version mismatches between GitHub Actions, local ACT, and the golangci-lint binary.
-    - name: Run Linter (Dockerized)
-      run: make docker-lint
+    # Run golangci-lint linter Github Action.
+    # If this ever stops due to version mismatches or other issues, the fallback Docker linter will catch it.
+    # Or just check their GitHub Action page for updates:
+    # https://github.com/golangci/golangci-lint-action
+    - name: Run Linter
+      uses: golangci/golangci-lint-action@v9
+      # with latest version.
 
     - name: Run Unit Tests with Coverage (Native)
       run: make test

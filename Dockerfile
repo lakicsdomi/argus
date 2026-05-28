@@ -4,7 +4,7 @@ FROM golang:1.26-alpine
 # Install necessary system tools
 RUN apk add --no-cache make
 
-# Optimization: Copy the pre-built linter directly from the official image.
+# Copy the pre-built linter directly from the official image.
 # This bypasses external scripts, reduces build time, and prevents checksum issues.
 COPY --from=golangci/golangci-lint:latest /usr/bin/golangci-lint /usr/bin/golangci-lint
 

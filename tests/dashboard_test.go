@@ -53,7 +53,12 @@ func TestDashboard(t *testing.T) {
 		if err != nil {
 			t.Fatalf("request failed: %v", err)
 		}
-		defer resp.Body.Close()
+
+		defer func() {
+			if resp.Body.Close() != nil {
+				t.Errorf("failed to close response body: %v", err)
+			}
+		}()
 
 		if resp.StatusCode != http.StatusOK {
 			t.Fatalf("expected 200, got %d", resp.StatusCode)
@@ -65,7 +70,11 @@ func TestDashboard(t *testing.T) {
 		if err != nil {
 			t.Fatalf("request failed: %v", err)
 		}
-		defer resp.Body.Close()
+		defer func() {
+			if resp.Body.Close() != nil {
+				t.Errorf("failed to close response body: %v", err)
+			}
+		}()
 
 		var logs []dashboard.LogEntry
 
@@ -91,7 +100,11 @@ func TestDashboard_InvalidDirectory(t *testing.T) {
 	if err != nil {
 		t.Fatalf("request failed: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if resp.Body.Close() != nil {
+			t.Errorf("failed to close response body: %v", err)
+		}
+	}()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
