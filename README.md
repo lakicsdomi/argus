@@ -1,3 +1,8 @@
+![Coverage](https://img.shields.io/badge/Coverage-79.8%25-brightgreen)
+![Go Version](https://img.shields.io/badge/Go-1.26-blue)
+![Docker](https://img.shields.io/badge/Docker-Ready-2496ED)
+
+
 # 👁️ Argus Logger
 
 
