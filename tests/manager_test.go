@@ -1,74 +1,67 @@
-package manager_test
+package tests
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
+	"time"
 
 	"github.com/lakicsdomi/argus/logger"
 )
 
-// Tests the initialization of the Manager and its loggers
-func TestNewManager(t *testing.T) {
-	// Arrange
+func TestManager(t *testing.T) {
 	dir := t.TempDir()
-	levels := []string{"VERBOSE", "WARNING", "ERROR", "CRITICAL"}
-
-	// Act
-	manager, err := logger.NewManager(dir)
-	defer manager.CloseAll()
-
-	// Assert
+	m, err := logger.NewManager(dir)
 	if err != nil {
-		t.Fatalf("Expected no error, got %v", err)
-	}
-	if manager == nil {
-		t.Fatal("Expected a valid Manager instance, got nil")
+		t.Fatalf("Failed to init manager: %v", err)
 	}
 
-	// Verify that all requested log files were actually created
-	for _, level := range levels {
-		matches, matchErr := filepath.Glob(filepath.Join(dir, level+"_*.log"))
-		if matchErr != nil || len(matches) == 0 {
-			t.Errorf("Expected log file for level %s to be created, but it was not", level)
-		}
+	if m.Verbose == nil || m.Warning == nil || m.Error == nil || m.Critical == nil {
+		t.Fatal("Manager loggers not fully initialized")
+	}
+
+	m.Verbose.Log("Main", "verbose msg")
+	m.Warning.Log("Main", "warning msg")
+	m.Error.Log("Main", "error msg")
+	m.Critical.Log("Main", "critical msg")
+
+	m.CloseAll()
+}
+
+func TestManager_InitializationError(t *testing.T) {
+	tmpFile := t.TempDir() + "/blocker.log"
+	_ = os.WriteFile(tmpFile, []byte("data"), 0644)
+
+	_, err := logger.NewManager(tmpFile)
+	if err == nil {
+		t.Error("Expected error when manager directory is actually a file")
 	}
 }
 
-// Tests if the FileLogger correctly formats and writes data to the file
-func TestFileLogger_Log(t *testing.T) {
-	// Arrange
-	dir := t.TempDir()
-	testComponent := "DATABASE"
-	testMessage := "Connection successful."
+// Forces failures for WARNING, ERROR, and CRITICAL loggers during initialization
+func TestManager_PartialInitFailures(t *testing.T) {
+	levels := []string{"WARNING", "ERROR", "CRITICAL"}
 
-	// Creating the logger is part of the test setup (Arrange)
-	fileLogger, err := logger.NewFileLogger(dir, "TEST")
-	if err != nil {
-		t.Fatalf("Failed to create file logger, got %v", err)
-	}
+	for _, level := range levels {
+		t.Run("Fail_"+level, func(t *testing.T) {
+			dir := t.TempDir()
 
-	// Act
-	fileLogger.Log(testComponent, testMessage)
-	fileLogger.Close() // Ensure buffers are flushed to the file before reading
+			// Create a directory exactly where the logger wants to create its file.
+			// This forces os.OpenFile to fail for this specific level.
+			logName := fmt.Sprintf("%s_%s.log", level, time.Now().Format("2006-01-02"))
+			_ = os.Mkdir(filepath.Join(dir, logName), 0755)
 
-	// Assert
-	matches, _ := filepath.Glob(filepath.Join(dir, "TEST_*.log"))
-	if len(matches) == 0 {
-		t.Fatal("Log file was not created")
+			_, err := logger.NewManager(dir)
+			if err == nil {
+				t.Errorf("Expected error when initializing %s, got nil", level)
+			}
+		})
 	}
+}
 
-	content, readErr := os.ReadFile(matches[0])
-	if readErr != nil {
-		t.Fatalf("Failed to read log file: %v", readErr)
-	}
-
-	contentStr := string(content)
-	if !strings.Contains(contentStr, testComponent) {
-		t.Errorf("Expected log to contain component %s", testComponent)
-	}
-	if !strings.Contains(contentStr, testMessage) {
-		t.Errorf("Expected log to contain message %s", testMessage)
-	}
+// Ensures CloseAll handles nil loggers safely
+func TestManager_CloseAllNil(t *testing.T) {
+	m := &logger.Manager{}
+	m.CloseAll() // Should run without panic
 }

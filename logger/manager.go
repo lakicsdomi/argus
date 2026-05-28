@@ -20,16 +20,22 @@ func NewManager(directory string) (*Manager, error) {
 
 	warning, err := NewFileLogger(directory, "WARNING")
 	if err != nil {
+		_ = verbose.Close() // Cleanup previously opened logger
 		return nil, fmt.Errorf("warning logger init failed: %w", err)
 	}
 
 	errLogger, err := NewFileLogger(directory, "ERROR")
 	if err != nil {
+		_ = verbose.Close() // Cleanup previously opened logger
+		_ = warning.Close() // Cleanup previously opened logger
 		return nil, fmt.Errorf("error logger init failed: %w", err)
 	}
 
 	critical, err := NewFileLogger(directory, "CRITICAL")
 	if err != nil {
+		_ = verbose.Close()
+		_ = warning.Close()
+		_ = errLogger.Close() // Cleanup previously opened loggers
 		return nil, fmt.Errorf("critical logger init failed: %w", err)
 	}
 

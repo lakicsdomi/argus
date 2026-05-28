@@ -24,14 +24,22 @@ func Serve(logDirectory string, port string) {
 	// Serve the embedded HTML UI
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.Write([]byte(dashboardHTML))
+		_, err := w.Write([]byte(dashboardHTML))
+		if err != nil {
+			http.Error(w, "Failed to write HTML", http.StatusInternalServerError)
+			return
+		}
 	})
 
 	// API endpoint to fetch the latest logs as JSON
 	mux.HandleFunc("/api/logs", func(w http.ResponseWriter, r *http.Request) {
 		logs := readLogs(logDirectory)
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(logs)
+		err := json.NewEncoder(w).Encode(logs)
+		if err != nil {
+			http.Error(w, "Failed to encode logs", http.StatusInternalServerError)
+			return
+		}
 	})
 
 	log.Printf("Argus Telemetry Dashboard running on http://localhost%s\n", port)

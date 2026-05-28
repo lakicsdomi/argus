@@ -17,7 +17,7 @@ type FileLogger struct {
 // Creates a new FileLogger instance for a specific severity level
 func NewFileLogger(directory, levelName string) (*FileLogger, error) {
 	if err := os.MkdirAll(directory, 0755); err != nil {
-		return nil, fmt.Errorf("Failed to create log directory: %w", err)
+		return nil, fmt.Errorf("failed to create log directory: %w", err)
 	}
 
 	// Generate the file name based on the level and current date
@@ -26,7 +26,7 @@ func NewFileLogger(directory, levelName string) (*FileLogger, error) {
 
 	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to open %s log file: %w", levelName, err)
+		return nil, fmt.Errorf("failed to open %s log file: %w", levelName, err)
 	}
 
 	return &FileLogger{
@@ -61,7 +61,7 @@ func (l *FileLogger) write(component string, content string) {
 
 	if l.file != nil {
 		if _, writeErr := l.file.WriteString(logMessage); writeErr != nil {
-			log.Printf("Failed to write to %s log file: %v\n", l.levelName, writeErr)
+			log.Printf("failed to write to %s log file: %v\n", l.levelName, writeErr)
 		}
 	}
 }

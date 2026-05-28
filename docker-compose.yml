@@ -1,6 +1,3 @@
 services:
   test:
     build: .
-    volumes:
-      # Mount the local directory to see live changes without rebuilding
-      - .:/app
