@@ -44,7 +44,16 @@ jobs:
       if: env.ACT != 'true' # Skip badge generation in local ACT runs to prevent dirty git commits
       with:
         filename: coverage.out
+        generate_summary_report: true
         badge: true
+        output: coverage.svg
+
+    - name: Commit Coverage Badge
+      if: env.ACT != 'true'
+      uses: stefanzweifel/git-auto-commit-action@v5
+      with:
+        commit_message: "docs: update coverage badge"
+        file_pattern: coverage.svg
 
     # For local ACT testing, to prevent leftover containers.
     - name: Cleanup Docker
