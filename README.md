@@ -1,4 +1,4 @@
-![Coverage](https://raw.githubusercontent.com/lakicsdomi/argus/main/coverage.svg)
+![Coverage](https://img.shields.io/badge/Coverage-0%25-brightgreen)
 
 # Argus Logger
 
